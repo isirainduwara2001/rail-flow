@@ -6,6 +6,7 @@
     <!-- Modern Search Section -->
     <div class="search-hero mb-5">
         <div class="search-container glass-morphism p-4 p-md-5">
+
             <div class="d-flex align-items-center mb-4">
                 <div class="icon-circle bg-primary-gradient me-3">
                     <i class="material-icons text-white">search</i>
@@ -17,6 +18,7 @@
             </div>
 
             <form id="searchForm" class="search-form-row">
+                
                 <div class="search-field">
                     <div class="field-icon"><i class="material-icons">location_on</i></div>
                     <div class="field-content">
