@@ -24,6 +24,7 @@ class Seat extends Model
     /**
      * Get the train that owns this seat.
      */
+    
     public function train(): BelongsTo
     {
         return $this->belongsTo(Train::class);
