@@ -155,7 +155,6 @@ class IotDataController extends Controller
                 'appid' => $apiKey,
                 'units' => 'metric',
             ]);
-
             if ($response->successful()) {
                 return $response->json();
             }
