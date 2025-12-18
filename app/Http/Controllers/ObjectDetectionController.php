@@ -10,8 +10,9 @@ use Illuminate\Http\Request;
 class ObjectDetectionController extends Controller
 {
     /**
-     * Display a listing of detection history (Web).
+     * Display a listing of detection history (Web)
      */
+
     public function index(Request $request)
     {
         $query = ObjectDetection::query();
