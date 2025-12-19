@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class IotData extends Model
 {
+    
     protected $table = 'iot_data';
 
     protected $fillable = [
