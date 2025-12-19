@@ -35,8 +35,9 @@ class ObjectDetectionController extends Controller
     }
 
     /**
-     * Store a new object detection record (API).
+     * Store a new object detection record (API)
      */
+    
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
