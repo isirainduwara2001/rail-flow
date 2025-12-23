@@ -5,6 +5,7 @@
 @section('content')
     <!-- Page Header -->
     <div class="mb-4 d-flex justify-content-between align-items-center">
+
         <div>
             <h4 class="fw-bold mb-1">Dashboard Overview</h4>
             <p class="text-muted mb-0">
@@ -15,6 +16,7 @@
                 @endif
             </p>
         </div>
+
         <div class="text-end">
             <span class="badge bg-light text-dark border p-2">
                 <i class="material-icons align-middle fs-6">calendar_today</i> {{ now()->format('M d, Y') }}
@@ -67,6 +69,7 @@
 
             <!-- Active Trains -->
             <div class="col-md-3 col-sm-6 mb-3">
+                
                 <div class="card kpi-card border-0 shadow-sm">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
