@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class ObjectDetectionController extends Controller
 {
+    
     /**
      * Display a listing of detection history (Web)
      */
