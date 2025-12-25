@@ -124,6 +124,7 @@
             background: #0f172a;
         }
     </style>
+    
 @endsection
 
 @section('content')
