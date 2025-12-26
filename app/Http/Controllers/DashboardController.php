@@ -9,6 +9,7 @@ use App\Models\User;
 
 class DashboardController extends Controller
 {
+    
     /**
      * Display the application dashboard.
      */
