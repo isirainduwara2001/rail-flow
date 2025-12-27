@@ -43,7 +43,7 @@ class IotDataController extends Controller
     }
 
     /**
-     * Display IoT history (admin view)
+     *  Display IoT history (admin view)
      */
     public function index(Request $request)
     {
