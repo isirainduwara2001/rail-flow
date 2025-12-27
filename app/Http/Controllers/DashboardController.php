@@ -9,7 +9,7 @@ use App\Models\User;
 
 class DashboardController extends Controller
 {
-    
+
     /**
      * Display the application dashboard.
      */
@@ -18,6 +18,7 @@ class DashboardController extends Controller
         $user = auth()->user();
         $isAdminOrStaff = $user->hasAnyRole(['admin', 'staff']);
 
+        
         // 7-day booking trend
         $days = [];
         $bookingCounts = [];
