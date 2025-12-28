@@ -124,7 +124,7 @@
             background: #0f172a;
         }
     </style>
-    
+
 @endsection
 
 @section('content')
@@ -145,6 +145,7 @@
             </div>
         </div>
 
+        
         <!-- Top Grid: Real-time Sensors & Weather -->
         <div class="row g-3 mb-4">
             <div class="col-md-2">
