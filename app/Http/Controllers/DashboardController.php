@@ -18,7 +18,7 @@ class DashboardController extends Controller
         $user = auth()->user();
         $isAdminOrStaff = $user->hasAnyRole(['admin', 'staff']);
 
-        
+
         // 7-day booking trend
         $days = [];
         $bookingCounts = [];
@@ -33,6 +33,7 @@ class DashboardController extends Controller
             $bookingCounts[] = $query->count();
         }
 
+        
         // Stats Query
         $bookingQuery = Booking::query();
         if (! $isAdminOrStaff) {
