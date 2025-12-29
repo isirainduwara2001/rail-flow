@@ -33,13 +33,14 @@ class DashboardController extends Controller
             $bookingCounts[] = $query->count();
         }
 
-        
+
         // Stats Query
         $bookingQuery = Booking::query();
         if (! $isAdminOrStaff) {
             $bookingQuery->where('user_id', $user->id);
         }
 
+        
         $dashboardData = [
             'is_admin' => $isAdminOrStaff,
             'total_users' => $isAdminOrStaff ? User::count() : 0,
