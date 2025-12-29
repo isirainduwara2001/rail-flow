@@ -145,7 +145,7 @@
             </div>
         </div>
 
-        
+
         <!-- Top Grid: Real-time Sensors & Weather -->
         <div class="row g-3 mb-4">
             <div class="col-md-2">
@@ -259,6 +259,7 @@
                 </div>
             </div>
         </div>
+        
 
         <!-- Middle Grid: Map & Stream -->
         <div class="row g-4">
