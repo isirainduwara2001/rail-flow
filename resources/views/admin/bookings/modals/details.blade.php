@@ -1,5 +1,6 @@
 <!-- Booking Details Modal -->
 <div class="modal fade" id="bookingModal" tabindex="-1">
+
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-gradient border-0">
@@ -15,5 +16,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
+        
     </div>
+
 </div>
