@@ -11,6 +11,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+
 Route::post('/iot/history', [IotDataController::class, 'store']);
 Route::get('/iot/latest', [IotDataController::class, 'latest']);
 Route::post('/settings/update', [IotDataController::class, 'updateSettings']);
