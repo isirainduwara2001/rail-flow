@@ -13,6 +13,7 @@ class DashboardController extends Controller
      * Display the application dashboard.
      */
     public function index()
+    
     {
         $user = auth()->user();
         $isAdminOrStaff = $user->hasAnyRole(['admin', 'staff']);
