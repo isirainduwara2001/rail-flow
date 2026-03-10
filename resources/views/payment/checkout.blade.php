@@ -4,6 +4,7 @@
 
 @section('content')
     <div class="container mt-4 mb-5">
+
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="card shadow-lg border-0">
@@ -12,6 +13,7 @@
                         <h5 class="mb-0"><i class="material-icons align-middle">payment</i> Secure Checkout</h5>
                     </div>
                     <div class="card-body p-4">
+                        
                         <!-- Booking Summary Header -->
                         <div class="mb-4">
                             <h6 class="text-primary text-uppercase small fw-bold mb-3">Booking Summary</h6>
