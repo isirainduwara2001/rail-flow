@@ -11,6 +11,7 @@
     <div class="row">
         <!-- Step 1: Select User -->
         <div class="col-md-12 mb-4">
+
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
@@ -45,11 +46,13 @@
         <!-- Step 2: Search Trains -->
         <div class="col-md-12 mb-4" id="step2Container" style="display: none;">
             <div class="card border-0 shadow-sm">
+                
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="material-icons align-middle me-2">train</i>Step 2: Search Trains
                     </h5>
                 </div>
+
                 <div class="card-body">
                     <form id="searchTrainForm" class="row g-3">
                         <div class="col-md-4">

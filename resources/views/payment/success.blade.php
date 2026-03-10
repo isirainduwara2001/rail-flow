@@ -4,7 +4,9 @@
 
 @section('content')
     <div class="container mt-5 mb-5">
+
         <div class="row justify-content-center">
+            
             <div class="col-lg-7 text-center">
                 <div class="card shadow-lg border-0 py-5">
                     <div class="card-body">
