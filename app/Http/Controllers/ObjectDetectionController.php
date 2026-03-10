@@ -9,9 +9,11 @@ use Illuminate\Http\Request;
 
 class ObjectDetectionController extends Controller
 {
+    
     /**
-     * Display a listing of detection history (Web).
+     * Display a listing of detection history (Web)
      */
+
     public function index(Request $request)
     {
         $query = ObjectDetection::query();
@@ -34,8 +36,9 @@ class ObjectDetectionController extends Controller
     }
 
     /**
-     * Store a new object detection record (API).
+     * Store a new object detection record (API)
      */
+
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
