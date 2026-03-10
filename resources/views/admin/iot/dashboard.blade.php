@@ -1,8 +1,7 @@
 @extends('layouts.app')
-
 @section('title', 'IoT Live Command Center - RailFlow')
-
 @section('styles')
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
@@ -125,6 +124,7 @@
             background: #0f172a;
         }
     </style>
+
 @endsection
 
 @section('content')
@@ -144,6 +144,7 @@
                 </button>
             </div>
         </div>
+
 
         <!-- Top Grid: Real-time Sensors & Weather -->
         <div class="row g-3 mb-4">
@@ -258,6 +259,7 @@
                 </div>
             </div>
         </div>
+        
 
         <!-- Middle Grid: Map & Stream -->
         <div class="row g-4">
