@@ -67,6 +67,7 @@ class BookingService
     /**
      * Cancel a booking.
      */
+    
     public function cancelBooking(Booking $booking, string $reason = ''): bool
     {
         return DB::transaction(function () use ($booking, $reason) {

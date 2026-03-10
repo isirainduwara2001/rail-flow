@@ -9,6 +9,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form id="trainForm">
+                
                 @csrf
                 <input type="hidden" id="trainId" name="id">
                 <div class="modal-body">
