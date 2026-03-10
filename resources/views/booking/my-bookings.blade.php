@@ -197,6 +197,7 @@
            ══════════════════════════════════════════════════════════ */
 
         // Coastal line: Colombo Fort → Matara
+
         const COASTAL_LINE = [
             { name: 'Colombo Fort',  lat: 6.9344, lng: 79.8501 },
             { name: 'Dehiwala',      lat: 6.8612, lng: 79.8636 },
@@ -212,6 +213,7 @@
         ];
 
         // Up-country line: Colombo Fort → Nuwara Eliya
+
         const UPCOUNTRY_LINE = [
             { name: 'Colombo Fort',   lat: 6.9344, lng: 79.8501 },
             { name: 'Maradana',       lat: 6.9272, lng: 79.8653 },
@@ -284,6 +286,7 @@
         function demoLerp(a, b, t) { return a + (b - a) * t; }
 
         function buildDemoTrainIcon() {
+        
             return L.divIcon({
                 className: 'custom-div-icon',
                 html: `<div class="demo-glow" style="
@@ -297,6 +300,7 @@
         }
 
         function drawDemoRoute() {
+
             const latlngs = demoStations.map(s => [s.lat, s.lng]);
             demoRouteLine = L.polyline(latlngs, {
                 color: '#38bdf8', weight: 4, opacity: .8, dashArray: '8 5'

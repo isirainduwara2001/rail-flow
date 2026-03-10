@@ -2,6 +2,7 @@
 
 @section('content')
     <div class="container-fluid py-4">
+
         <div class="row">
             <div class="col-12">
                 <div class="card my-4">
@@ -17,6 +18,7 @@
                     </div>
                     
                     <div class="px-3 mb-3">
+                        
                         <form action="{{ route('passenger-informs.index') }}" method="GET" class="row g-3">
                             <div class="col-md-3">
                                 <label class="form-label text-xs">Train</label>

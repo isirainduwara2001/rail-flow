@@ -53,6 +53,7 @@ class BookingEngineController extends Controller
             ->get()
             ->map(function ($schedule) {
                 // Get min and max prices from seat classes
+                
                 $prices = $schedule->train->seatClasses()->pluck('price');
                 $minPrice = $prices->min() ?? 0;
                 $maxPrice = $prices->max() ?? 0;
