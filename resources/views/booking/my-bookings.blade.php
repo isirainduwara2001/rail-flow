@@ -4,6 +4,7 @@
 
 @section('content')
     <div class="container-fluid py-4">
+
         <div class="row">
             <div class="col-12">
                 <div class="card my-4 border-0 shadow-lg">
@@ -47,6 +48,7 @@
 
     <!-- Booking Details Modal -->
     <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-hidden="true">
+        
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-light">
