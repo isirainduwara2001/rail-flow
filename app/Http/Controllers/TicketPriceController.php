@@ -14,6 +14,7 @@ class TicketPriceController extends Controller
      * Display ticket prices management for a train.
      */
     public function index(Train $train)
+    
     {
         return view('admin.trains.ticket-prices', compact('train'));
     }
