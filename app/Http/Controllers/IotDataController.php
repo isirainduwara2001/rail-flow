@@ -12,11 +12,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class IotDataController extends Controller
 {
     /**
-     * Store new IoT history data
+     * Store new IoT history data.
      */
     public function store(Request $request): JsonResponse
     {
@@ -43,7 +44,7 @@ class IotDataController extends Controller
     }
 
     /**
-     *  Display IoT history (admin view)
+     * Display IoT history (admin view).
      */
     public function index(Request $request)
     {
@@ -63,7 +64,7 @@ class IotDataController extends Controller
     }
 
     /**
-     * Display Modern IoT Dashboard
+     * Display Modern IoT Dashboard.
      */
     public function dashboard()
     {
@@ -80,12 +81,17 @@ class IotDataController extends Controller
     }
 
     /**
-     * Get latest IoT data (API) including weather
+     * Get latest IoT data (API) including weather.
      */
     public function latest(): JsonResponse
     {
         $latest = IotData::latest()->first();
         $weather = $this->getWeatherData($latest->latitude ?? null, $latest->longitude ?? null);
+
+        // Cache weather data for CAPE module consumption
+        if ($weather) {
+            Cache::put('latest_weather', $weather, 300);
+        }
 
         $latestDetection = ObjectDetection::latest()->first();
         $latestDisaster = DisasterHistory::latest()->first();
@@ -99,7 +105,7 @@ class IotDataController extends Controller
     }
 
     /**
-     * Update system settings
+     * Update system settings.
      */
     public function updateSettings(Request $request): JsonResponse
     {
@@ -117,7 +123,7 @@ class IotDataController extends Controller
     }
 
     /**
-     * Get nearest station based on latest IoT data
+     * Get nearest station based on latest IoT data.
      */
     public function getNearestStation()
     {
@@ -135,7 +141,7 @@ class IotDataController extends Controller
     }
 
     /**
-     * Fetch weather data from OpenWeatherMap
+     * Fetch weather data from OpenWeatherMap.
      */
     private function getWeatherData($lat, $lng)
     {
@@ -155,6 +161,7 @@ class IotDataController extends Controller
                 'appid' => $apiKey,
                 'units' => 'metric',
             ]);
+
             if ($response->successful()) {
                 return $response->json();
             }

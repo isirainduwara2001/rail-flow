@@ -27,7 +27,6 @@ class Booking extends Model
     /**
      * Get the user who made the booking.
      */
-    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

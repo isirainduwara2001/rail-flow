@@ -1,7 +1,8 @@
 @extends('layouts.app')
-@section('title', 'IoT Live Command Center - RailFlow')
-@section('styles')
 
+@section('title', 'IoT Live Command Center - RailFlow')
+
+@section('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
@@ -124,7 +125,6 @@
             background: #0f172a;
         }
     </style>
-
 @endsection
 
 @section('content')
@@ -144,7 +144,6 @@
                 </button>
             </div>
         </div>
-
 
         <!-- Top Grid: Real-time Sensors & Weather -->
         <div class="row g-3 mb-4">
@@ -259,7 +258,6 @@
                 </div>
             </div>
         </div>
-        
 
         <!-- Middle Grid: Map & Stream -->
         <div class="row g-4">
@@ -446,6 +444,9 @@
                 </div>
             </div>
         </div>
+
+        {{-- CAPE Risk Assessment Panel --}}
+        @include('cape.partials.cape-panel')
     </div>
 
     <!-- Settings Modal -->
@@ -668,5 +669,127 @@
                 alert(msg);
             }
         }
+
+        // =============================================================
+        // CAPE POLLING — separate from sensor poll, runs every 20s
+        // =============================================================
+        function updateCapePanel() {
+            fetch('/api/cape/assess')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        console.warn('CAPE:', data.error);
+                        return;
+                    }
+
+                    // Update risk badge
+                    const badge = document.getElementById('cape-risk-badge');
+                    if (badge) {
+                        badge.textContent = data.risk_level;
+                        badge.className = 'badge px-5 py-3';
+                        badge.style.fontSize = '1.75rem';
+                        badge.style.fontWeight = '900';
+                        badge.style.letterSpacing = '2px';
+                        badge.style.borderRadius = '1rem';
+                        const riskColors = { Low: 'bg-success', Medium: 'bg-warning', High: 'bg-danger' };
+                        badge.classList.add(riskColors[data.risk_level] || 'bg-secondary');
+                    }
+
+                    // Update response time
+                    const rtEl = document.getElementById('cape-response-time');
+                    if (rtEl) rtEl.textContent = 'Response: ' + data.response_time_ms + 'ms (' + data.source + ')';
+
+                    // Update context grid
+                    const ctxMap = {
+                        'cape-ctx-speed': data.context?.speed_status,
+                        'cape-ctx-light': data.context?.light_condition,
+                        'cape-ctx-obstacle': data.context?.obstacle || 'No obstacle',
+                        'cape-ctx-flood': data.context?.flood_context || 'No flood risk',
+                        'cape-ctx-weather': data.context?.weather_context || 'N/A',
+                        'cape-ctx-proximity': data.context?.proximity_status
+                    };
+                    for (const [id, val] of Object.entries(ctxMap)) {
+                        const el = document.getElementById(id);
+                        if (el) el.textContent = val || '—';
+                    }
+
+                    // Update reasons list
+                    const reasonsList = document.getElementById('cape-reasons-list');
+                    if (reasonsList && data.reasons) {
+                        reasonsList.innerHTML = data.reasons.map(
+                            r => '<li class="mb-1"><i class="material-icons align-middle me-1" style="font-size:14px;color:#f59e0b;">warning</i>' + r + '</li>'
+                        ).join('');
+                    }
+
+                    // Update actions list
+                    const actionsList = document.getElementById('cape-actions-list');
+                    if (actionsList && data.actions) {
+                        actionsList.innerHTML = data.actions.map(
+                            a => '<li class="mb-1">' + a + '</li>'
+                        ).join('');
+                    }
+
+                    // Update prediction
+                    const predEl = document.getElementById('cape-prediction');
+                    if (predEl) predEl.textContent = data.prediction || 'No prediction available.';
+
+                    // Update prompt viewer
+                    const promptEl = document.getElementById('cape-prompt-text');
+                    if (promptEl) promptEl.textContent = data.prompt || '';
+
+                    // Update last-updated timestamp
+                    const tsEl = document.getElementById('cape-last-updated');
+                    if (tsEl) {
+                        const ts = data.assessed_at ? new Date(data.assessed_at).toLocaleTimeString() : new Date().toLocaleTimeString();
+                        tsEl.textContent = 'Last assessed: ' + ts;
+                    }
+                })
+                .catch(err => console.error('CAPE poll error:', err));
+        }
+
+        // CAPE chat handler
+        $(document).ready(function() {
+            updateCapePanel();
+            setInterval(updateCapePanel, {{ config('cape.poll_interval', 20000) }});
+
+            $('#cape-chat-send').on('click', function() {
+                const input = $('#cape-chat-input');
+                const question = input.val().trim();
+                if (!question) return;
+
+                $('#cape-chat-loading').show();
+                $('#cape-chat-response').hide();
+
+                fetch('/api/cape/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ question: question })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    $('#cape-chat-loading').hide();
+                    $('#cape-chat-answer').text(data.answer || 'No response received.');
+                    $('#cape-chat-response').show();
+                })
+                .catch(err => {
+                    $('#cape-chat-loading').hide();
+                    $('#cape-chat-answer').text('Error communicating with CAPE.');
+                    $('#cape-chat-response').show();
+                    console.error('CAPE chat error:', err);
+                });
+            });
+
+            // Allow Enter key to send
+            $('#cape-chat-input').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    $('#cape-chat-send').trigger('click');
+                }
+            });
+        });
     </script>
 @endsection

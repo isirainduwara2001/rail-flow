@@ -6,7 +6,6 @@
 
     <div class="card">
         <div class="card-header">
-            
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="fw-bold mb-1">

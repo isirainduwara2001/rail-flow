@@ -22,11 +22,11 @@
                         <div class="col-md-6 mb-3">
                             <label for="fromStation" class="form-label fw-5">From Station</label>
                             <input type="text" class="form-control" id="fromStation" name="from"
-                                placeholder="e.g., Delhi" required>
+                                placeholder="e.g., Colombo" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="toStation" class="form-label fw-5">To Station</label>
-                            <input type="text" class="form-control" id="toStation" name="to" placeholder="e.g., Mumbai"
+                            <input type="text" class="form-control" id="toStation" name="to" placeholder="e.g., Kandy"
                                 required>
                         </div>
                     </div>

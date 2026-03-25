@@ -14,7 +14,6 @@ class SmsService
 
     public function __construct()
     {
-        
         $this->userId = config('services.textit.user_id') ?? '';
         $this->password = config('services.textit.password') ?? '';
     }

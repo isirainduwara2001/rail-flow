@@ -4,7 +4,6 @@
 
 @section('content')
     <div class="container-fluid py-4">
-
         <div class="row">
             <div class="col-12">
                 <div class="card my-4 border-0 shadow-lg">
@@ -48,7 +47,6 @@
 
     <!-- Booking Details Modal -->
     <div class="modal fade" id="bookingDetailsModal" tabindex="-1" aria-hidden="true">
-        
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-light">
@@ -197,7 +195,6 @@
            ══════════════════════════════════════════════════════════ */
 
         // Coastal line: Colombo Fort → Matara
-
         const COASTAL_LINE = [
             { name: 'Colombo Fort',  lat: 6.9344, lng: 79.8501 },
             { name: 'Dehiwala',      lat: 6.8612, lng: 79.8636 },
@@ -213,7 +210,6 @@
         ];
 
         // Up-country line: Colombo Fort → Nuwara Eliya
-
         const UPCOUNTRY_LINE = [
             { name: 'Colombo Fort',   lat: 6.9344, lng: 79.8501 },
             { name: 'Maradana',       lat: 6.9272, lng: 79.8653 },
@@ -286,7 +282,6 @@
         function demoLerp(a, b, t) { return a + (b - a) * t; }
 
         function buildDemoTrainIcon() {
-        
             return L.divIcon({
                 className: 'custom-div-icon',
                 html: `<div class="demo-glow" style="
@@ -300,7 +295,6 @@
         }
 
         function drawDemoRoute() {
-
             const latlngs = demoStations.map(s => [s.lat, s.lng]);
             demoRouteLine = L.polyline(latlngs, {
                 color: '#38bdf8', weight: 4, opacity: .8, dashArray: '8 5'

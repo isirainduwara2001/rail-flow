@@ -18,7 +18,6 @@ class PaymentController extends Controller
     {
         $this->bookingService = $bookingService;
     }
-    
 
     /**
      * Show the checkout page.

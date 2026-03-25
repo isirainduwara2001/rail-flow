@@ -9,16 +9,13 @@ use App\Models\User;
 
 class DashboardController extends Controller
 {
-
     /**
      * Display the application dashboard.
      */
     public function index()
-    
     {
         $user = auth()->user();
         $isAdminOrStaff = $user->hasAnyRole(['admin', 'staff']);
-
 
         // 7-day booking trend
         $days = [];
@@ -34,14 +31,12 @@ class DashboardController extends Controller
             $bookingCounts[] = $query->count();
         }
 
-
         // Stats Query
         $bookingQuery = Booking::query();
         if (! $isAdminOrStaff) {
             $bookingQuery->where('user_id', $user->id);
         }
 
-        
         $dashboardData = [
             'is_admin' => $isAdminOrStaff,
             'total_users' => $isAdminOrStaff ? User::count() : 0,

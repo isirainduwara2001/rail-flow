@@ -202,7 +202,6 @@
                     <div class="card-body">
                         <!-- Schedule Details -->
                         <div class="schedule-info">
-                            
                             <div class="row">
                                 <div class="col-md-6">
                                     <p><i class="material-icons"

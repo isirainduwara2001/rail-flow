@@ -22,7 +22,6 @@ class Train extends Model
     /**
      * Get all seats for this train.
      */
-    
     public function seats(): HasMany
     {
         return $this->hasMany(Seat::class);

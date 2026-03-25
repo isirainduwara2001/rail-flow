@@ -145,6 +145,9 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin|staff')->group(function () {
         Route::get('/admin/history', [IotDataController::class, 'index'])->name('admin.history');
         Route::get('/admin/iot-dashboard', [IotDataController::class, 'dashboard'])->name('admin.iot-dashboard');
+
+        // CAPE Research Logs
+        Route::get('/admin/cape-logs', [\App\Http\Controllers\CapeController::class, 'logs'])->name('admin.cape-logs');
     });
 
     // Risk Areas

@@ -1,0 +1,479 @@
+{
+	"info": {
+		"_postman_id": "cape-railflow-2026",
+		"name": "CAPE RailFlow - Risk Scenario Testing",
+		"description": "Test the CAPE (Context-Aware Prompt Engine) pipeline with different IoT data scenarios to trigger Low, Medium, and High risk assessments.\n\n**Flow:**\n1. Send IoT sensor data (POST /api/iot/history)\n2. Optionally send Object Detection / Disaster data\n3. Trigger CAPE assessment (GET /api/cape/assess)\n4. Ask CAPE questions (POST /api/cape/chat)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "📗 Scenario 1 — LOW Risk (All Normal)",
+			"item": [
+				{
+					"name": "Step 1: Send Normal IoT Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sf_front_distance\": 150.00,\n    \"sf_side_distance\": 120.00,\n    \"t_front_distance\": 200.00,\n    \"temperature\": 28.50,\n    \"humidity\": 55.00,\n    \"lux\": 450.00,\n    \"rain_percentage\": 0.00,\n    \"latitude\": 6.91361500,\n    \"longitude\": 79.97474300,\n    \"speed\": 35.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/iot/history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "iot", "history"]
+						},
+						"description": "Normal conditions: good light (450 lux), no rain, moderate speed, clear corridor, normal humidity."
+					}
+				},
+				{
+					"name": "Step 2: Trigger CAPE Assessment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cape/assess",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cape", "assess"]
+						},
+						"description": "Expected result: LOW risk — all parameters within normal operating ranges."
+					}
+				}
+			],
+			"description": "Sends normal sensor values. CAPE should return **Low** risk."
+		},
+		{
+			"name": "📙 Scenario 2 — MEDIUM Risk (Low Light + Obstacle Far)",
+			"item": [
+				{
+					"name": "Step 1: Send Low Light IoT Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sf_front_distance\": 80.00,\n    \"sf_side_distance\": 60.00,\n    \"t_front_distance\": 100.00,\n    \"temperature\": 24.00,\n    \"humidity\": 78.00,\n    \"lux\": 15.00,\n    \"rain_percentage\": 25.00,\n    \"latitude\": 6.92200000,\n    \"longitude\": 79.96800000,\n    \"speed\": 42.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/iot/history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "iot", "history"]
+						},
+						"description": "Very low light (15 lux = night), high humidity (78%), light rain (25%), moderate speed."
+					}
+				},
+				{
+					"name": "Step 2: Send Object Detection (Far)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"image\": \"detections/person_far.jpg\",\n    \"type\": \"Person\",\n    \"distance\": 12.50,\n    \"size\": \"0.50x1.70m\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/object-detection",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "object-detection"]
+						},
+						"description": "Person detected 12.5m away (outside 5m danger zone). Combined with low light → Medium risk."
+					}
+				},
+				{
+					"name": "Step 3: Trigger CAPE Assessment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cape/assess",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cape", "assess"]
+						},
+						"description": "Expected result: MEDIUM risk — very low light + obstacle present (outside danger zone)."
+					}
+				}
+			],
+			"description": "Sends low light + distant obstacle + rain. CAPE should return **Medium** risk."
+		},
+		{
+			"name": "📕 Scenario 3 — HIGH Risk (Obstacle in Danger Zone)",
+			"item": [
+				{
+					"name": "Step 1: Send IoT Data (Night + Rain)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sf_front_distance\": 50.00,\n    \"sf_side_distance\": 50.00,\n    \"t_front_distance\": 136.00,\n    \"temperature\": 22.00,\n    \"humidity\": 85.00,\n    \"lux\": 10.00,\n    \"rain_percentage\": 45.00,\n    \"latitude\": 6.91576000,\n    \"longitude\": 79.97391700,\n    \"speed\": 55.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/iot/history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "iot", "history"]
+						},
+						"description": "Night conditions (10 lux), heavy rain (45%), high humidity (85%), moderate-high speed."
+					}
+				},
+				{
+					"name": "Step 2: Send Object Detection (DANGER ZONE)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"image\": \"detections/animal_close.jpg\",\n    \"type\": \"Animals\",\n    \"distance\": 2.80,\n    \"size\": \"1.20x0.90m\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/object-detection",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "object-detection"]
+						},
+						"description": "Animal detected only 2.8m from track — INSIDE the 5m danger threshold → triggers HIGH risk."
+					}
+				},
+				{
+					"name": "Step 3: Send Disaster (High Flood)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"latitude\": 6.93440000,\n    \"longitude\": 79.85010000,\n    \"city\": \"Colombo Fort\",\n    \"risk_level\": \"High\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/disaster-history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "disaster-history"]
+						},
+						"description": "High flood risk report near Colombo Fort — compounds the risk assessment."
+					}
+				},
+				{
+					"name": "Step 4: Trigger CAPE Assessment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cape/assess",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cape", "assess"]
+						},
+						"description": "Expected result: HIGH risk — obstacle within danger zone + high flood risk + night + heavy rain."
+					}
+				}
+			],
+			"description": "Sends close obstacle + high flood + night + heavy rain. CAPE should return **High** risk."
+		},
+		{
+			"name": "📕 Scenario 4 — HIGH Risk (Flood Only, No Obstacle)",
+			"item": [
+				{
+					"name": "Step 1: Send Normal IoT Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sf_front_distance\": 100.00,\n    \"sf_side_distance\": 90.00,\n    \"t_front_distance\": 150.00,\n    \"temperature\": 27.00,\n    \"humidity\": 90.00,\n    \"lux\": 300.00,\n    \"rain_percentage\": 60.00,\n    \"latitude\": 6.93500000,\n    \"longitude\": 79.85100000,\n    \"speed\": 30.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/iot/history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "iot", "history"]
+						},
+						"description": "Good light but heavy rain (60%) and very high humidity (90%)."
+					}
+				},
+				{
+					"name": "Step 2: Send Critical Flood Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"latitude\": 6.93500000,\n    \"longitude\": 79.85100000,\n    \"city\": \"Maradana\",\n    \"risk_level\": \"High\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/disaster-history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "disaster-history"]
+						},
+						"description": "High flood risk at Maradana — should trigger HIGH risk even without obstacle."
+					}
+				},
+				{
+					"name": "Step 3: Trigger CAPE Assessment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cape/assess",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cape", "assess"]
+						},
+						"description": "Expected result: HIGH risk — flood risk High/Critical triggers HIGH regardless of other factors."
+					}
+				}
+			],
+			"description": "No obstacle, but High flood risk + heavy rain. CAPE should return **High** risk."
+		},
+		{
+			"name": "📙 Scenario 5 — MEDIUM Risk (High Humidity + Heavy Rain)",
+			"item": [
+				{
+					"name": "Step 1: Send Rainy IoT Data",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sf_front_distance\": 120.00,\n    \"sf_side_distance\": 100.00,\n    \"t_front_distance\": 180.00,\n    \"temperature\": 23.50,\n    \"humidity\": 88.00,\n    \"lux\": 250.00,\n    \"rain_percentage\": 55.00,\n    \"latitude\": 6.92000000,\n    \"longitude\": 79.97000000,\n    \"speed\": 25.00\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/iot/history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "iot", "history"]
+						},
+						"description": "High humidity (88%) + heavy rain (55%) + normal light. No obstacle, low flood → triggers Medium."
+					}
+				},
+				{
+					"name": "Step 2: Send Low Flood Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"latitude\": 6.92000000,\n    \"longitude\": 79.97000000,\n    \"city\": \"Nugegoda\",\n    \"risk_level\": \"Low\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/disaster-history",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "disaster-history"]
+						},
+						"description": "Low flood risk — won't trigger High by itself."
+					}
+				},
+				{
+					"name": "Step 3: Trigger CAPE Assessment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cape/assess",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cape", "assess"]
+						},
+						"description": "Expected result: MEDIUM risk — high humidity + heavy rain combination."
+					}
+				}
+			],
+			"description": "Heavy rain + high humidity, no obstacle. CAPE should return **Medium** risk."
+		},
+		{
+			"name": "💬 CAPE Chat",
+			"item": [
+				{
+					"name": "Ask CAPE a Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"question\": \"What is the current risk level and what should the driver do?\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cape/chat",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cape", "chat"]
+						},
+						"description": "Ask CAPE about the current risk assessment. Uses the latest CapeRiskLog context."
+					}
+				},
+				{
+					"name": "Ask About Specific Factor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"question\": \"Is it safe to increase speed given the current weather conditions?\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cape/chat",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cape", "chat"]
+						},
+						"description": "Ask CAPE about speed safety related to current conditions."
+					}
+				}
+			],
+			"description": "Chat with CAPE about the most recent risk assessment."
+		},
+		{
+			"name": "🔍 Utility",
+			"item": [
+				{
+					"name": "Get Latest IoT + Weather + Detection",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/iot/latest",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "iot", "latest"]
+						},
+						"description": "Fetches the combined latest data — same structure CAPE reads internally."
+					}
+				}
+			],
+			"description": "Utility endpoints for debugging."
+		}
+	]
+}

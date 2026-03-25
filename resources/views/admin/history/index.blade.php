@@ -1,7 +1,8 @@
 @extends('layouts.app')
-@section('title', 'IoT History - RailFlow')
-@section('styles')
 
+@section('title', 'IoT History - RailFlow')
+
+@section('styles')
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
@@ -16,7 +17,6 @@
 @section('content')
 
     <div class="card">
-        
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
