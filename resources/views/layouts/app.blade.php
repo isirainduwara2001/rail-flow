@@ -29,13 +29,6 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .sidebar {
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            padding-top: 2rem;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-        }
-
         .sidebar .nav-link {
             color: #a8b1d4;
             padding: 0.75rem 1.5rem;
@@ -298,27 +291,84 @@
         }
 
         /* Main Layout */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100vh;
+            overflow: hidden;
+        }
+
         body {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
         }
 
         .layout-wrapper {
             display: flex;
-            flex: 1;
+            height: 100vh;
+            width: 100%;
         }
 
         .sidebar {
             width: 250px;
             flex-shrink: 0;
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding-top: 2rem;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(231, 76, 60, 0.3);
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(231, 76, 60, 0.5);
         }
 
         .main-wrapper {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            min-width: 0;
+            height: 100vh;
+        }
+
+        /* Modern scrollbar for main content */
+        .main-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .main-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         /* Responsive Sidebar */
