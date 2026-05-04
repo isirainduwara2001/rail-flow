@@ -482,6 +482,11 @@
                                                 <i class="material-icons text-sm align-middle">train</i>
                                                 <span class="ms-1">Track</span>
                                             </button>
+                                            ${booking.status === 'confirmed' || booking.status === 'pending' ? `
+                                            <button class="btn btn-link text-danger mb-0 p-0 cancel-booking" data-id="${booking.id}">
+                                                <i class="material-icons text-sm align-middle">cancel</i>
+                                                <span class="ms-1">Cancel</span>
+                                            </button>` : ''}
                                         </div>
                                     </td>
                                 </tr>
@@ -671,6 +676,30 @@
 
                     // Do not destroy the map instance; just keep as-is for next open
                 }, { once: true });
+            });
+
+            $(document).on('click', '.cancel-booking', function () {
+                const id = $(this).data('id');
+                if (!confirm('Are you sure you want to cancel this booking?')) return;
+
+                $.ajax({
+                    url: `/booking/${id}/cancel`,
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Booking cancelled successfully.');
+                            loadBookings();
+                        } else {
+                            alert('Failed to cancel booking: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while cancelling the booking.');
+                    }
+                });
             });
         });
     </script>

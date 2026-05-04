@@ -299,6 +299,7 @@ class BookingEngineController extends Controller
     public function getUserBookings(): JsonResponse
     {
         $bookings = Auth::user()->bookingHistory()
+            ->whereNotIn('status', ['cancelled'])
             ->get()
             ->map(function ($booking) {
                 return [
