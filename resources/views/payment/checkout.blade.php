@@ -92,6 +92,7 @@
                                         <input type="text" name="card_name" class="form-control" placeholder="John Doe"
                                             required>
                                     </div>
+                                    <div class="invalid-feedback" id="nameError"></div>
                                 </div>
 
                                 <div class="col-md-12">
@@ -100,18 +101,21 @@
                                         <span class="input-group-text bg-white"><i
                                                 class="material-icons text-muted">credit_card</i></span>
                                         <input type="text" name="card_number" class="form-control"
-                                            placeholder="0000 0000 0000 0000" required>
+                                            placeholder="0000 0000 0000 0000" maxlength="19" required>
                                     </div>
+                                    <div class="invalid-feedback" id="cardError"></div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label small text-muted">Expiry Date</label>
-                                    <input type="text" class="form-control" placeholder="MM/YY" required>
+                                    <input type="text" name="expiry_date" class="form-control" placeholder="MM/YY" maxlength="5" required>
+                                    <div class="invalid-feedback" id="expiryError"></div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <label class="form-label small text-muted">CVV</label>
-                                    <input type="password" class="form-control" placeholder="***" required>
+                                    <input type="password" name="cvv" class="form-control" placeholder="***" maxlength="3" required>
+                                    <div class="invalid-feedback" id="cvvError"></div>
                                 </div>
                             </div>
 
@@ -142,8 +146,113 @@
 @section('scripts')
     <script>
         $(document).ready(function () {
+            // Card Number formatting - auto-add spaces and limit to 16 digits
+            $('input[name="card_number"]').on('input', function(e) {
+                let value = $(this).val().replace(/\D/g, '');
+                value = value.substring(0, 16);
+                let formatted = value.match(/.{1,4}/g)?.join(' ') || value;
+                $(this).val(formatted);
+            });
+
+            // Expiry Date formatting - auto-add slash and limit to MM/YY
+            $('input[name="expiry_date"]').on('input', function(e) {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                $(this).val(value);
+            });
+
+            // CVV - only allow 3 digits
+            $('input[name="cvv"]').on('input', function(e) {
+                let value = $(this).val().replace(/\D/g, '');
+                value = value.substring(0, 3);
+                $(this).val(value);
+            });
+
+            // Block paste of invalid characters
+            $('input[name="card_number"], input[name="cvv"]').on('paste', function(e) {
+                e.preventDefault();
+                let text = (e.originalEvent?.clipboardData || window.clipboardData).getData('text');
+                text = text.replace(/\D/g, '').substring(0, $(this).attr('maxlength') === '3' ? 3 : 16);
+                $(this).val(text);
+            });
+
+            $('input[name="expiry_date"]').on('paste', function(e) {
+                e.preventDefault();
+                let text = (e.originalEvent?.clipboardData || window.clipboardData).getData('text');
+                text = text.replace(/\D/g, '').substring(0, 4);
+                if (text.length >= 2) {
+                    text = text.substring(0, 2) + '/' + text.substring(2, 4);
+                }
+                $(this).val(text);
+            });
+
+            // Function to validate the form
+            function validateForm() {
+                let isValid = true;
+
+                // Clear previous errors
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback').text('');
+
+                // Cardholder Name
+                const name = $('input[name="card_name"]').val().trim();
+                if (name === '') {
+                    $('#nameError').text('Cardholder name is required.');
+                    $('input[name="card_name"]').addClass('is-invalid');
+                    isValid = false;
+                }
+
+                // Card Number
+                const cardNumber = $('input[name="card_number"]').val().replace(/\s/g, '');
+                if (!/^\d{16}$/.test(cardNumber)) {
+                    $('#cardError').text('Card number must be 16 digits.');
+                    $('input[name="card_number"]').addClass('is-invalid');
+                    isValid = false;
+                }
+
+                // Expiry Date
+                const expiry = $('input[name="expiry_date"]').val();
+                const expiryRegex = /^\d{2}\/\d{2}$/;
+                if (!expiryRegex.test(expiry)) {
+                    $('#expiryError').text('Expiry date must be in MM/YY format.');
+                    $('input[name="expiry_date"]').addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    const [month, year] = expiry.split('/');
+                    const monthNum = parseInt(month, 10);
+                    const yearNum = parseInt(year, 10) + 2000; // Assuming 20xx
+                    const currentYear = new Date().getFullYear();
+                    const currentMonth = new Date().getMonth() + 1;
+                    if (monthNum < 1 || monthNum > 12) {
+                        $('#expiryError').text('Invalid month.');
+                        $('input[name="expiry_date"]').addClass('is-invalid');
+                        isValid = false;
+                    } else if (yearNum < currentYear || (yearNum === currentYear && monthNum < currentMonth)) {
+                        $('#expiryError').text('Expiry date must be in the future.');
+                        $('input[name="expiry_date"]').addClass('is-invalid');
+                        isValid = false;
+                    }
+                }
+
+                // CVV
+                const cvv = $('input[name="cvv"]').val();
+                if (!/^\d{3}$/.test(cvv)) {
+                    $('#cvvError').text('CVV must be 3 digits.');
+                    $('input[name="cvv"]').addClass('is-invalid');
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
             $('#paymentForm').on('submit', function (e) {
                 e.preventDefault();
+
+                if (!validateForm()) {
+                    return; // Stop if validation fails
+                }
 
                 const btn = $('#payBtn');
                 const originalText = btn.html();
