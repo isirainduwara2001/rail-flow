@@ -30,9 +30,9 @@ class BookingService
                 throw new \Exception('Seat does not belong to the scheduled train.');
             }
 
-            // Check seat is available (final validation before booking)
-            if (!$seat->isAvailable()) {
-                throw new \Exception('Seat is no longer available.');
+            // Check seat is available for this specific schedule (not globally)
+            if (!$this->isSeatAvailable($schedule, $seat)) {
+                throw new \Exception('Seat is no longer available for this schedule.');
             }
 
             // Check schedule departure hasn't passed
@@ -52,12 +52,9 @@ class BookingService
                 'booked_at' => now(),
             ]);
 
-            // Update seat status
-            $seat->update(['status' => 'occupied']);
-
             // Update schedule available seats
             $schedule->update([
-                'available_seats' => $schedule->getAvailableSeatsCount(),
+                'available_seats' => DB::raw('available_seats - 1'),
             ]);
 
             return $booking->load(['user', 'schedule.train', 'seat']);
@@ -79,13 +76,8 @@ class BookingService
                 'status' => 'cancelled',
             ]);
 
-            // Free up the seat
-            $booking->seat->update(['status' => 'available']);
-
             // Update schedule available seats
-            $booking->schedule->update([
-                'available_seats' => $booking->schedule->getAvailableSeatsCount(),
-            ]);
+            $booking->schedule->increment('available_seats');
 
             return true;
         });
