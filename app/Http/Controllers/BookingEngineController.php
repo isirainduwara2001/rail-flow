@@ -251,6 +251,13 @@ class BookingEngineController extends Controller
         }
 
         return DataTables::of($query)
+            ->with([
+                'stats' => [
+                    'total'     => Booking::count(),
+                    'confirmed' => Booking::where('status', 'confirmed')->count(),
+                    'cancelled' => Booking::where('status', 'cancelled')->count(),
+                ],
+            ])
             ->addColumn('reference', function (Booking $booking) {
                 return $booking->booking_reference;
             })
@@ -283,7 +290,7 @@ class BookingEngineController extends Controller
                         <button class="btn btn-outline-info view-booking" data-id="' . $booking->id . '" title="View Details">
                             <i class="material-icons">visibility</i>
                         </button>
-                        <button class="btn btn-outline-danger cancel-booking" data-id="' . $booking->id . '" title="Cancel" ' . ($booking->status !== 'confirmed' ? 'disabled' : '') . '>
+                        <button class="btn btn-outline-danger delete-booking" data-id="' . $booking->id . '" title="Delete booking">
                             <i class="material-icons">delete</i>
                         </button>
                     </div>
@@ -349,6 +356,19 @@ class BookingEngineController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    /**
+     * Delete a cancelled booking.
+     */
+    public function deleteBooking(Booking $booking): JsonResponse
+    {
+        $booking->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking deleted successfully.',
+        ]);
     }
 
     /**
@@ -533,7 +553,6 @@ class BookingEngineController extends Controller
      */
     public function exportBookings()
     {
-        // Check authorization - admin/staff only
         if (!Auth::user()->hasAnyRole(['admin', 'staff'])) {
             abort(403, 'Unauthorized to export bookings.');
         }
@@ -542,50 +561,15 @@ class BookingEngineController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $filename = 'bookings_' . date('Y-m-d_H-i-s') . '.csv';
+        $pdf = \PDF::loadView('admin.bookings.pdf', [
+            'bookings'    => $bookings,
+            'total'       => $bookings->count(),
+            'confirmed'   => $bookings->where('status', 'confirmed')->count(),
+            'cancelled'   => $bookings->where('status', 'cancelled')->count(),
+            'generatedAt' => now()->format('M d, Y \a\t H:i'),
+        ]);
 
-        $headers = [
-            'Content-Type' => 'text/csv; charset=utf-8',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $callback = function () use ($bookings) {
-            $file = fopen('php://output', 'w');
-
-            // Write header row
-            fputcsv($file, [
-                'Booking ID',
-                'Reference',
-                'Passenger Name',
-                'Email',
-                'Train',
-                'Route',
-                'Seat Number',
-                'Amount (LKR)',
-                'Status',
-                'Booked On',
-            ]);
-
-            // Write data rows
-            foreach ($bookings as $booking) {
-                fputcsv($file, [
-                    $booking->id,
-                    $booking->booking_reference,
-                    $booking->user->name,
-                    $booking->user->email,
-                    $booking->schedule->train->name,
-                    $booking->schedule->from . ' → ' . $booking->schedule->to,
-                    $booking->seat->seat_number,
-                    $booking->amount,
-                    $booking->status,
-                    $booking->created_at->format('Y-m-d H:i:s'),
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return $pdf->download('bookings_' . date('Y-m-d') . '.pdf');
     }
 
     /**

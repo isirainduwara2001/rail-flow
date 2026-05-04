@@ -255,20 +255,20 @@
                 });
             });
 
-            // Cancel Booking
-            $(document).on('click', '.cancel-booking', function () {
-                if (confirm('Are you sure you want to cancel this booking? A refund will be processed.')) {
+            // Delete cancelled booking
+            $(document).on('click', '.delete-booking', function () {
+                if (confirm('Are you sure you want to permanently delete this cancelled booking?')) {
                     let id = $(this).data('id');
                     $.ajax({
-                        url: `{{ route('bookings.cancel', ':id') }}`.replace(':id', id),
-                        method: 'POST',
+                        url: `{{ route('bookings.delete', ':id') }}`.replace(':id', id),
+                        method: 'DELETE',
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                         success: function () {
                             table.ajax.reload();
-                            showAlert('Booking cancelled successfully!', 'success');
+                            showAlert('Booking deleted successfully!', 'success');
                         },
                         error: function () {
-                            showAlert('Error cancelling booking', 'danger');
+                            showAlert('Error deleting booking', 'danger');
                         }
                     });
                 }
@@ -276,19 +276,16 @@
 
             // Export bookings
             $('#exportBookings').click(function () {
-                window.location.href = "{{ route('bookings.export') }}";
+                window.open("{{ route('bookings.export') }}", '_blank');
             });
 
             function updateStats() {
-                // These would ideally be calculated from the data
-                let confirmed = 0, cancelled = 0;
-                table.rows().data().each(function (row) {
-                    if (row.status === 'confirmed') confirmed++;
-                    if (row.status === 'cancelled') cancelled++;
-                });
-                $('#totalBookings').text(table.rows().count());
-                $('#confirmedCount').text(confirmed);
-                $('#cancelledCount').text(cancelled);
+                const json = table.ajax.json();
+                if (json && json.stats) {
+                    $('#totalBookings').text(json.stats.total);
+                    $('#confirmedCount').text(json.stats.confirmed);
+                    $('#cancelledCount').text(json.stats.cancelled);
+                }
             }
         });
     </script>
@@ -301,6 +298,39 @@
 
         .btn-group-sm .btn {
             padding: 4px 8px;
+        }
+
+        .card.bg-gradient-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+            color: #fff !important;
+        }
+
+        .card.bg-gradient-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+            color: #fff !important;
+        }
+
+        .card.bg-gradient-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%) !important;
+            color: #fff !important;
+        }
+
+        .card.bg-gradient-info .text-white,
+        .card.bg-gradient-success .text-white,
+        .card.bg-gradient-danger .text-white {
+            color: #fff !important;
+        }
+
+        .shadow-info {
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.35) !important;
+        }
+
+        .shadow-success {
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.35) !important;
+        }
+
+        .shadow-danger {
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.35) !important;
         }
     </style>
 @endsection

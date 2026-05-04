@@ -102,10 +102,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:admin|staff')->group(function () {
         Route::get('/admin/bookings', [BookingEngineController::class, 'allBookings'])->name('admin.bookings');
         Route::prefix('admin/bookings')->name('bookings.')->group(function () {
+            Route::get('/export', [BookingEngineController::class, 'exportBookings'])->name('export');
             Route::get('/data', [BookingEngineController::class, 'getAllBookingsData'])->name('data');
             Route::get('/{booking}', [BookingEngineController::class, 'show'])->name('show');
             Route::post('/{booking}/cancel', [BookingEngineController::class, 'cancelBooking'])->name('cancel');
-            Route::get('/export', [BookingEngineController::class, 'exportBookings'])->name('export');
+            Route::delete('/{booking}', [BookingEngineController::class, 'deleteBooking'])->name('delete');
         });
 
         // Staff Booking Creation (Admin & Staff)
