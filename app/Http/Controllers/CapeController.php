@@ -117,7 +117,7 @@ class CapeController extends Controller
      */
     public function logs(Request $request): View
     {
-        $logs = CapeRiskLog::latest()->paginate(50);
+        $logs = CapeRiskLog::latest()->paginate(10);
 
         // Summary statistics
         $totalAssessments = CapeRiskLog::count();
