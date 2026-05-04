@@ -153,28 +153,37 @@ class CapeController extends Controller
 
         $question = $request->input('question');
 
-        // Fetch latest CAPE risk log
         $latestLog = CapeRiskLog::latestRisk();
 
         if (! $latestLog) {
             return response()->json([
-                'answer' => 'No CAPE assessments available yet. Please run an assessment first.',
+                'answer' => 'No CAPE assessments available yet. Please wait for the first automatic assessment to complete.',
             ]);
         }
 
-        // Build chat prompt with current risk context
+        $reasons = is_array($latestLog->reasons_json) ? $latestLog->reasons_json : [];
+        $actions = is_array($latestLog->actions_json) ? $latestLog->actions_json : [];
+        $contextData = is_array($latestLog->context_json) ? $latestLog->context_json : [];
+
+        $apiKey = config('cape.openai_api_key');
+        $baseUrl = config('cape.openai_base_url');
+
+        if (empty($apiKey)) {
+            return response()->json([
+                'answer' => $this->generateOfflineResponse($question, $latestLog->risk_level, $reasons, $actions, $contextData, $latestLog->prediction),
+            ]);
+        }
+
         $chatPrompt = "You are CAPE, a railway safety AI assistant for Sri Lanka railways.\n\n";
         $chatPrompt .= "Current risk assessment context:\n";
         $chatPrompt .= "- Risk Level: {$latestLog->risk_level}\n";
-        $chatPrompt .= "- Reasons: " . implode(', ', $latestLog->reasons_json ?? []) . "\n";
-        $chatPrompt .= "- Actions: " . implode(', ', $latestLog->actions_json ?? []) . "\n";
+        $chatPrompt .= "- Reasons: " . (count($reasons) ? implode(', ', $reasons) : 'None') . "\n";
+        $chatPrompt .= "- Actions: " . (count($actions) ? implode(', ', $actions) : 'None') . "\n";
         $chatPrompt .= "- Prediction: {$latestLog->prediction}\n";
-        $chatPrompt .= "- Assessment Source: {$latestLog->source}\n";
 
-        // Add context labels
-        if (is_array($latestLog->context_json)) {
-            $chatPrompt .= "\nDetailed context:\n";
-            foreach ($latestLog->context_json as $key => $value) {
+        if (!empty($contextData)) {
+            $chatPrompt .= "\nSensor context:\n";
+            foreach ($contextData as $key => $value) {
                 if ($value) {
                     $chatPrompt .= "  - {$key}: {$value}\n";
                 }
@@ -182,57 +191,111 @@ class CapeController extends Controller
         }
 
         $chatPrompt .= "\nUser question: {$question}\n";
-        $chatPrompt .= "\nProvide a helpful, concise answer focused on railway safety. ";
-        $chatPrompt .= "If the question is unrelated to railway safety, politely redirect.";
+        $chatPrompt .= "\nProvide a helpful, concise answer (2-4 sentences) focused on railway safety. Be conversational.";
 
         try {
-            $apiKey = config('cape.openai_api_key');
-
-            if (empty($apiKey)) {
-                return response()->json([
-                    'answer' => "I'm currently operating in offline mode (no API key configured). "
-                        . "Based on the latest assessment, the risk level is {$latestLog->risk_level}. "
-                        . "Key factors: " . implode(', ', $latestLog->reasons_json ?? ['No details available']) . ".",
-                ]);
-            }
-
-            $baseUrl = config('cape.openai_base_url');
-
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiKey,
                 'Content-Type'  => 'application/json',
-            ])->timeout(30)->post($baseUrl . '/chat/completions', [
+            ])->timeout(15)->post($baseUrl . '/chat/completions', [
                 'model'       => config('cape.openai_model'),
                 'messages'    => [
-                    [
-                        'role'    => 'system',
-                        'content' => 'You are CAPE, a railway safety AI assistant. Be concise and helpful.',
-                    ],
-                    [
-                        'role'    => 'user',
-                        'content' => $chatPrompt,
-                    ],
+                    ['role' => 'system', 'content' => 'You are CAPE, a railway safety AI assistant. Be concise and conversational.'],
+                    ['role' => 'user', 'content' => $chatPrompt],
                 ],
                 'max_tokens'  => 300,
                 'temperature' => 0.3,
             ]);
 
             if ($response->successful()) {
-                $answer = $response->json('choices.0.message.content') ?? 'Unable to generate response.';
-                return response()->json(['answer' => $answer]);
+                $body = $response->json();
+                $content = $body['choices'][0]['message']['content'] ?? null;
+
+                if ($content) {
+                    $content = trim($content);
+                    if (str_starts_with($content, '```')) {
+                        $content = preg_replace('/^```(?:json)?\s*/i', '', $content);
+                        $content = preg_replace('/\s*```$/', '', $content);
+                        $content = trim($content);
+                    }
+                    return response()->json(['answer' => $content]);
+                }
             }
-
-            Log::error('CAPE Chat: API error', ['status' => $response->status()]);
-
         } catch (\Exception $e) {
-            Log::error('CAPE Chat: Exception', ['message' => $e->getMessage()]);
+            Log::warning('CAPE Chat: API failed, using offline response', ['error' => $e->getMessage()]);
         }
 
-        // Fallback response
         return response()->json([
-            'answer' => "I'm experiencing connectivity issues. Based on the latest assessment: "
-                . "Risk level is {$latestLog->risk_level}. "
-                . implode('. ', $latestLog->reasons_json ?? []) . ".",
+            'answer' => $this->generateOfflineResponse($question, $latestLog->risk_level, $reasons, $actions, $contextData, $latestLog->prediction ?? ''),
         ]);
+    }
+
+    private function generateOfflineResponse(string $question, string $riskLevel, array $reasons, array $actions, array $contextData, string $prediction = ''): string
+    {
+        $lower = strtolower($question);
+
+        if (str_contains($lower, 'weather') || str_contains($lower, 'rain') || str_contains($lower, 'temperature') || str_contains($lower, 'humidity')) {
+            $weatherParts = [];
+            if (isset($contextData['weather_context'])) $weatherParts[] = "Weather: {$contextData['weather_context']}";
+            if (isset($contextData['rain_status'])) $weatherParts[] = "Rain: {$contextData['rain_status']}";
+            if (isset($contextData['speed_status'])) $weatherParts[] = "Speed: {$contextData['speed_status']}";
+            if (isset($contextData['light_condition'])) $weatherParts[] = "Light: {$contextData['light_condition']}";
+
+            $weatherInfo = count($weatherParts) ? implode('. ', $weatherParts) : 'No detailed weather data available right now.';
+            return "Current conditions — {$weatherInfo}. The overall risk level is {$riskLevel}. " . (count($reasons) ? 'Key concerns: ' . implode('; ', $reasons) : '') . '.';
+        }
+
+        if (str_contains($lower, 'risk') || str_contains($lower, 'danger') || str_contains($lower, 'safe') || str_contains($lower, 'status') || str_contains($lower, 'situation')) {
+            $riskEmoji = match($riskLevel) {
+                'High' => '⚠️',
+                'Medium' => '⚡',
+                default => '✅',
+            };
+            return "Risk level: {$riskLevel} {$riskEmoji}. " . (count($reasons) ? 'Reasons: ' . implode('; ', $reasons) . '. ' : '') . (count($actions) ? 'Recommended actions: ' . implode('; ', $actions) . '. ' : '') . "Prediction: {$prediction}.";
+        }
+
+        if (str_contains($lower, 'obstacle') || str_contains($lower, 'detect') || str_contains($lower, 'object')) {
+            $obstacle = $contextData['obstacle'] ?? 'No obstacle detected';
+            $proximity = $contextData['proximity_status'] ?? 'Unknown';
+            return "Obstacle status: {$obstacle}. Proximity: {$proximity}. Risk level is {$riskLevel}. " . (count($actions) ? 'Recommended: ' . implode('; ', $actions) : 'Stay alert.');
+        }
+
+        if (str_contains($lower, 'speed') || str_contains($lower, 'fast') || str_contains($lower, 'slow')) {
+            $speed = $contextData['speed_status'] ?? 'Unknown';
+            return "Train speed status: {$speed}. Risk level is {$riskLevel}. " . (count($reasons) ? 'Context: ' . implode('; ', $reasons) : 'Proceed with caution.');
+        }
+
+        if (str_contains($lower, 'light') || str_contains($lower, 'dark') || str_contains($lower, 'night') || str_contains($lower, 'visibility')) {
+            $light = $contextData['light_condition'] ?? 'Unknown';
+            return "Light conditions: {$light}. Risk level is {$riskLevel}. " . (count($reasons) ? 'Factors: ' . implode('; ', $reasons) : 'No additional concerns.');
+        }
+
+        if (str_contains($lower, 'flood') || str_contains($lower, 'water') || str_contains($lower, 'river')) {
+            $flood = $contextData['flood_context'] ?? 'No flood risk data available';
+            return "Flood assessment: {$flood}. Risk level is {$riskLevel}. " . (count($actions) ? 'Actions: ' . implode('; ', $actions) : 'Monitor conditions.');
+        }
+
+        if (str_contains($lower, 'hello') || str_contains($lower, 'hi') || str_contains($lower, 'hey')) {
+            return "Hello! I'm CAPE, your railway safety assistant. Current risk level is {$riskLevel}. How can I help you?";
+        }
+
+        if (str_contains($lower, 'thank')) {
+            return "You're welcome! Stay safe on the railways. Current risk level is {$riskLevel}.";
+        }
+
+        if (str_contains($lower, 'who are you') || str_contains($lower, 'what are you') || str_contains($lower, 'what is cape')) {
+            return "I'm CAPE (Context-Aware Prompt Engine), a railway safety AI. I analyze sensor data, weather, obstacles, and other factors to assess risk levels for Sri Lanka's railway network.";
+        }
+
+        $defaultResponse = "Based on the latest assessment, risk level is {$riskLevel}. ";
+        if (count($reasons)) {
+            $defaultResponse .= "Key factors: " . implode('; ', $reasons) . ". ";
+        }
+        if (count($actions)) {
+            $defaultResponse .= "Recommended: " . implode('; ', $actions) . ". ";
+        }
+        $defaultResponse .= "Ask me about weather, speed, obstacles, flood risk, or overall safety status.";
+
+        return $defaultResponse;
     }
 }
